@@ -13,12 +13,13 @@ module Cortera
       # @return [Cortera::Error]
       def from_response(response)
         message, code = parse_error(response.body)
-        new(message, response.response_headers, code)
+        (errors[code]||self).new(message, response.response_headers, code)
       end
 
       def errors
         @errors ||= {
           400 => Cortera::Error::BadRequest,
+          -1 => Cortera::Error::NoMatch,
         }
       end
 
@@ -28,7 +29,7 @@ module Cortera
         if body.nil?
           ['', nil]
         elsif body['ReportResult']
-          [body['ReportResult']['Status'], body['ReportResult']['Message']]
+          [body['ReportResult']['Message'], body['ReportResult']['Status']]
         end
       end
     end
@@ -46,6 +47,8 @@ module Cortera
 
 
     ClientError = Class.new(self)
+
+    NoMatch = Class.new(ClientError)
 
     # Raised when Cortera returns the HTTP status code 400
     BadRequest = Class.new(ClientError)
