@@ -4,7 +4,7 @@ require 'json'
 
 module Cortera
   class Error < StandardError
-    attr_reader :code
+    attr_reader :code, :response
 
     class << self
       # Create a new error from an HTTP response
@@ -13,7 +13,7 @@ module Cortera
       # @return [Cortera::Error]
       def from_response(response)
         message, code = parse_error(response.body)
-        (errors[code]||self).new(message, response.response_headers, code)
+        (errors[code]||self).new(message, response.response_headers, code, response)
       end
 
       def errors
@@ -40,9 +40,9 @@ module Cortera
     # @param headers [Hash]
     # @param code [Integer]
     # @return [Cortera::Error]
-    def initialize(message = '', headers = {}, code = nil)
+    def initialize(message = '', headers = {}, code = nil, response = nil)
       super(message)
-      @code = code
+      @code, @response = code, response
     end
 
 
